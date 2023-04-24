@@ -1,25 +1,22 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"os"
 
-	"github.com/go-webauthn/webauthn/webauthn"
-)
-
-var (
-	w   *webauthn.WebAuthn
-	err error
+	"github.com/gofiber/fiber/v2"
+	"github.com/remaster/webauthn/pkg/config"
+	"github.com/remaster/webauthn/pkg/routes"
 )
 
 // Your initialization function
 func main() {
-	wconfig := &webauthn.Config{
-		RPDisplayName: "Go Webauthn",                               // Display Name for your site
-		RPID:          "go-webauthn.local",                         // Generally the FQDN for your site
-		RPOrigins:     []string{"https://login.go-webauthn.local"}, // The origin URLs allowed for WebAuthn requests
-	}
+	//WebAuthn setup
+	config.SetupWebAuthn()
 
-	if w, err = webauthn.New(wconfig); err != nil {
-		fmt.Println(err)
-	}
+	//Setting up routes
+	app := fiber.New()
+	routes.SetupRoutes(app)
+
+	log.Fatal(app.Listen(os.Getenv("APP_PORT")))
 }
