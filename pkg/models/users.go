@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/remaster/webauthn/pkg/utils"
 
@@ -16,28 +18,27 @@ var db *gorm.DB
 // var User User
 
 type User struct {
-	gorm.Model
-	id          uint64
-	name        string
-	displayName string
-	credentials []webauthn.Credential
+	Id          uint64 `gorm:"primaryKey"`
+	Name        string
+	DisplayName string
+	credentials []webauthn.Credential `gorm:"-:migration, type:text"`
 }
 
 // User Model functions
 // WebAuthnID returns the user's ID
 func (user User) WebAuthnID() []byte {
-	id := utils.ConvertIntToByteArray(user.id)
+	id := utils.ConvertIntToByteArray(user.Id)
 	return id
 }
 
 // WebAuthnName returns the user's username
 func (user User) WebAuthnName() string {
-	return user.name
+	return user.Name
 }
 
 // WebAuthnDisplayName returns the user's display name
 func (user User) WebAuthnDisplayName() string {
-	return user.displayName
+	return user.DisplayName
 }
 
 // WebAuthnIcon is not (yet) implemented
@@ -46,8 +47,8 @@ func (user User) WebAuthnIcon() string {
 }
 
 // AddCredential associates the credential to the user
-func (u User) AddCredential(cred webauthn.Credential) {
-	u.credentials = append(u.credentials, cred)
+func (user User) AddCredential(cred webauthn.Credential) {
+	user.credentials = append(user.credentials, cred)
 }
 
 // WebAuthnCredentials returns credentials owned by the user
@@ -70,10 +71,14 @@ func GetUsers() []User {
 }
 
 func CreateUser(name string, displayName string) User {
+	rand.Seed(time.Now().UnixNano())
 	user := &User{}
-	user.id = utils.RandomUint64()
-	user.name = name
-	user.displayName = displayName
+	user.Id = rand.Uint64()
+	user.Name = name
+	user.DisplayName = displayName
+	fmt.Println(user.Id)
+	fmt.Println(user.Name)
+	fmt.Println(user.DisplayName)
 	result := db.Create(&user)
 	if result.Error != nil {
 		fmt.Print(result.Error)
@@ -81,14 +86,17 @@ func CreateUser(name string, displayName string) User {
 	return *user
 }
 
-func GetUserById(Id int64) *User {
+func GetUserByName(username string) (User, error) {
 	var getUser User
-	db.Where("ID=?", Id).Find(&getUser)
-	return &getUser
+	result := db.Where("name=?", username).First(&getUser)
+	if result.Error != nil {
+		return getUser, result.Error
+	}
+	return getUser, nil
 }
 
-func DeleteUser(Id int64) User {
-	deleteUser := GetUserById(Id)
-	db.Delete(&deleteUser)
-	return *deleteUser
+func DeleteUser(username string) User {
+	deleteUser, _ := GetUserByName(username)
+	db.Delete(deleteUser)
+	return deleteUser
 }
