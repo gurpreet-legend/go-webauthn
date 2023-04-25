@@ -9,24 +9,33 @@ import (
 )
 
 func beginRegistration(c *fiber.Ctx) error {
-	user := models.CreateUser() // Create the new user
-	web := config.GetWebAuthn()
-	options, session, err := web.BeginRegistration(*user)
-	if err != nil {
-		fmt.Print("BeginRegistration failed!!")
-		c.Status(400).JSON(&fiber.Map{
-			"error": err,
-		})
-		return err
-	}
-	// store the sessionData values
-	fmt.Print(session)
-	// ---> still need to implement the store function
+	fmt.Print("Hellow")
+	id := []byte{0}
+	user := models.CreateUser(id) // Create the new user
+	fmt.Printf("%v\n", user)
+	fmt.Printf("%T\n", user)
 
-	// return the options generated
-	c.Status(200).JSON(&fiber.Map{
-		"options": options,
-	})
+	// fmt.Print(user.(webauthn.User))
+	web := config.GetWebAuthn()
+	fmt.Print(*web)
+
+	// options, session, err := web.BeginRegistration()
+	// if err != nil {
+	// 	fmt.Print("BeginRegistration failed!!")
+	// 	c.Status(400).JSON(&fiber.Map{
+	// 		"error": err,
+	// 	})
+	// 	return err
+	// }
+	// // store the sessionData values
+	// fmt.Print(session)
+	// // ---> still need to implement the store function
+
+	// // return the options generated
+	// fmt.Print("Registration successful!!")
+	// c.Status(200).JSON(&fiber.Map{
+	// 	"options": options,
+	// })
 	return nil
 	// options.publicKey contain our registration options
 }
