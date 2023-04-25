@@ -38,9 +38,9 @@ func BeginRegistration(c *fiber.Ctx) error {
 	}
 
 	// Storing session
-	sess := *config.GetSession()
+	sess := config.GetSession()
 	sessData := *sessionData
-	fmt.Println(sessData.UserID)
+	fmt.Printf("%+v", sessData)
 	store, err := sess.Get(c)
 	if err != nil {
 		fmt.Println(err)
@@ -85,8 +85,6 @@ func FinishRegistration(c *fiber.Ctx) error {
 	data, _ := json.Marshal(responseBody)
 	reader := bytes.NewReader(data)
 
-	fmt.Printf("\n\n\n")
-
 	_, err := protocol.ParseCredentialCreationResponseBody(reader)
 	if err != nil {
 		fmt.Println(err)
@@ -110,7 +108,7 @@ func FinishRegistration(c *fiber.Ctx) error {
 	}
 
 	// load the session data
-	sess := *config.GetSession()
+	sess := config.GetSession()
 	store, err := sess.Get(c)
 	if err != nil {
 		c.Status(500).JSON(&fiber.Map{
