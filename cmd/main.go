@@ -20,7 +20,7 @@ func main() {
 	config.SetupWebAuthn()
 
 	//Setup session
-	config.CreateSession()
+	// config.CreateSession()
 
 	app := fiber.New()
 

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -20,7 +21,6 @@ func BeginRegistration(c *fiber.Ctx) error {
 	user, err := models.GetUserByName(username)
 	if err != nil { // Create user if not registered already
 		displayName := strings.Split(username, "@")[0]
-		fmt.Println(displayName)
 		models.CreateUser(username, displayName)
 		user, _ = models.GetUserByName(username)
 	}
@@ -28,7 +28,7 @@ func BeginRegistration(c *fiber.Ctx) error {
 	web := config.GetWebAuthn()
 
 	// Begin registration using user
-	options, _, err := web.BeginRegistration(user)
+	options, sessionData, err := web.BeginRegistration(user)
 	if err != nil {
 		fmt.Println(err)
 		c.Status(500).JSON(&fiber.Map{
@@ -38,23 +38,19 @@ func BeginRegistration(c *fiber.Ctx) error {
 		return err
 	}
 
-	fmt.Println(options)
+	fmt.Println(uint64(binary.LittleEndian.Uint64(sessionData.UserID)))
 
 	// Storing session
-	// sess := config.GetSession()
-	// sessData := *sessionData
-	// fmt.Printf("%+v", sessData)
-	// store, err := sess.Get(c)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	c.Status(500).JSON(&fiber.Map{
-	// 		"error":   err,
-	// 		"message": "Internal server error. Session storage failed \n",
-	// 	})
-	// 	return err
-	// }
-	// store.Set("registration", sessData)
-	// store.Save()
+	models.CreateSession(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
+	_, err = models.GetSessionByUserId(user.Id)
+	if err != nil {
+		fmt.Println(err)
+		c.Status(500).JSON(&fiber.Map{
+			"error":   err,
+			"message": "Internal server error. Session storage failure\n",
+		})
+		return err
+	}
 
 	c.Status(200).JSON(&fiber.Map{
 		"options": options,
@@ -111,16 +107,16 @@ func FinishRegistration(c *fiber.Ctx) error {
 	}
 
 	// load the session data
-	sess := config.GetSession()
-	store, err := sess.Get(c)
-	if err != nil {
-		c.Status(500).JSON(&fiber.Map{
-			"error":   err,
-			"message": "Internal server error. Unable to get the session storage.",
-		})
-	}
-	sessionData := store.Get("registration")
-	fmt.Println(sessionData)
+	// sess := config.GetSession()
+	// store, err := sess.Get(c)
+	// if err != nil {
+	// 	c.Status(500).JSON(&fiber.Map{
+	// 		"error":   err,
+	// 		"message": "Internal server error. Unable to get the session storage.",
+	// 	})
+	// }
+	// sessionData := store.Get("registration")
+	// fmt.Println(sessionData)
 
 	// web := config.GetWebAuthn()
 
