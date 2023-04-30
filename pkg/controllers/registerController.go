@@ -22,12 +22,13 @@ func BeginRegistration(c *fiber.Ctx) error {
 		displayName := strings.Split(username, "@")[0]
 		fmt.Println(displayName)
 		models.CreateUser(username, displayName)
+		user, _ = models.GetUserByName(username)
 	}
 
 	web := config.GetWebAuthn()
 
 	// Begin registration using user
-	options, sessionData, err := web.BeginRegistration(user)
+	options, _, err := web.BeginRegistration(user)
 	if err != nil {
 		fmt.Println(err)
 		c.Status(500).JSON(&fiber.Map{
@@ -37,21 +38,23 @@ func BeginRegistration(c *fiber.Ctx) error {
 		return err
 	}
 
+	fmt.Println(options)
+
 	// Storing session
-	sess := config.GetSession()
-	sessData := *sessionData
-	fmt.Printf("%+v", sessData)
-	store, err := sess.Get(c)
-	if err != nil {
-		fmt.Println(err)
-		c.Status(500).JSON(&fiber.Map{
-			"error":   err,
-			"message": "Internal server error. Session storage failed \n",
-		})
-		return err
-	}
-	store.Set("registration", sessData)
-	store.Save()
+	// sess := config.GetSession()
+	// sessData := *sessionData
+	// fmt.Printf("%+v", sessData)
+	// store, err := sess.Get(c)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	c.Status(500).JSON(&fiber.Map{
+	// 		"error":   err,
+	// 		"message": "Internal server error. Session storage failed \n",
+	// 	})
+	// 	return err
+	// }
+	// store.Set("registration", sessData)
+	// store.Save()
 
 	c.Status(200).JSON(&fiber.Map{
 		"options": options,
