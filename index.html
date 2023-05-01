@@ -60,13 +60,13 @@
             'json'
         )
         .then(async (credentialCreationOptions) => {
-            console.log(credentialCreationOptions.options.publicKey)
+            console.log(credentialCreationOptions.publicKey)
             
-            credentialCreationOptions.options.publicKey.challenge = bufferDecode(credentialCreationOptions.options.publicKey.challenge);
-            credentialCreationOptions.options.publicKey.user.id = bufferDecode(credentialCreationOptions.options.publicKey.user.id);
+            credentialCreationOptions.publicKey.challenge = bufferDecode(credentialCreationOptions.publicKey.challenge);
+            credentialCreationOptions.publicKey.user.id = bufferDecode(credentialCreationOptions.publicKey.user.id);
             
             return await navigator.credentials.create({
-                publicKey: credentialCreationOptions.options.publicKey
+                publicKey: credentialCreationOptions.publicKey
             })
         })
         .then((credential) => {

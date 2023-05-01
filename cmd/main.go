@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
@@ -25,8 +24,8 @@ func main() {
 
 	credentials := handlers.AllowCredentials()
 	methods := handlers.AllowedMethods([]string{"POST", "GET", "DELETE"})
-	origins := handlers.AllowedOrigins([]string{"www.example.com", "http://localhost:5500", "*"})
+	origins := handlers.AllowedOrigins([]string{"http://localhost:5500", "*"})
 	fmt.Println("Listening on port 3000...")
-	log.Fatal(http.ListenAndServe(os.Getenv("APP_PORT"), handlers.CORS(credentials, methods, origins)(router)))
+	log.Fatal(http.ListenAndServe(":3000", handlers.CORS(credentials, methods, origins)(router)))
 
 }
