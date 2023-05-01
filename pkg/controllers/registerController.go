@@ -1,20 +1,30 @@
 package controllers
 
 import (
-	"bytes"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gorilla/mux"
 	"github.com/remaster/webauthn/pkg/config"
 	"github.com/remaster/webauthn/pkg/models"
 )
 
-func BeginRegistration(c *fiber.Ctx) error {
-	username := c.Params("username")
+type ErrorMessage struct {
+	err     error
+	message string
+}
+
+type BeginRegistrationResponse struct {
+	options *protocol.CredentialCreation
+}
+
+func BeginRegistration(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	username := params["username"]
 	fmt.Printf("%v\n", username)
 
 	//Get user by username
@@ -31,32 +41,32 @@ func BeginRegistration(c *fiber.Ctx) error {
 	options, sessionData, err := web.BeginRegistration(user)
 	if err != nil {
 		fmt.Println(err)
-		c.Status(500).JSON(&fiber.Map{
-			"error":   err,
-			"message": "Internal server error. Registration failed \n",
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewDecoder(r.Body).Decode(&ErrorMessage{
+			err:     err,
+			message: "Internal server error. Registration failed \n",
 		})
-		return err
+		return
 	}
 
 	fmt.Println(uint64(binary.LittleEndian.Uint64(sessionData.UserID)))
 
 	// Storing session
-	models.CreateSession(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
 	_, err = models.GetSessionByUserId(user.Id)
 	if err != nil {
-		fmt.Println(err)
-		c.Status(500).JSON(&fiber.Map{
-			"error":   err,
-			"message": "Internal server error. Session storage failure\n",
-		})
-		return err
+		models.CreateSession(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
+	} else {
+		models.UpdateSessionByUserId(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
 	}
 
-	c.Status(200).JSON(&fiber.Map{
-		"options": options,
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewDecoder(r.Body).Decode(&BeginRegistrationResponse{
+		options: options,
 	})
 
-	return nil
+	return
 }
 
 type NestedResponse struct {
@@ -70,73 +80,111 @@ type AttestationResponse struct {
 	Response NestedResponse `json:"response"`
 }
 
-func FinishRegistration(c *fiber.Ctx) error {
-	var responseBody AttestationResponse
-	if err := c.BodyParser(&responseBody); err != nil {
-		c.Status(500).JSON(&fiber.Map{
-			"error":   err,
-			"message": "Internal server error. Error while parsing the body",
-		})
-		fmt.Println("Internal server error. Error while parsing the body")
-	}
+// func FinishRegistration(w http.ResponseWriter, r *http.Request) {
+// 	var responseBody AttestationResponse
+// 	if err := c.BodyParser(&responseBody); err != nil {
+// 		c.Status(500).JSON(&fiber.Map{
+// 			"error":   err,
+// 			"message": "Internal server error. Error while parsing the body",
+// 		})
+// 		fmt.Println("Internal server error. Error while parsing the body")
+// 	}
 
-	// Parsing data and creating a io.Reader for response body
-	data, _ := json.Marshal(responseBody)
-	reader := bytes.NewReader(data)
+// 	//Get user by username
+// 	username := c.Params("username")
+// 	user, err := models.GetUserByName(username)
+// 	if err != nil {
+// 		c.Status(500).JSON(&fiber.Map{
+// 			"error":   err,
+// 			"message": "Internal server error. User not found during validating attestation. Please register the user first.",
+// 		})
+// 	}
+// 	fmt.Println("USER DETAILS---------------")
+// 	fmt.Println(user)
 
-	_, err := protocol.ParseCredentialCreationResponseBody(reader)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("Final Registration failed!!")
-		c.Status(400).JSON(&fiber.Map{
-			"error": err,
-		})
-		return err
-	}
-	// fmt.Println(response)
+// 	// Load the session data
+// 	sess, err := models.GetSessionByUserId(user.Id)
+// 	if err != nil {
+// 		c.Status(500).JSON(&fiber.Map{
+// 			"error":   err,
+// 			"message": "Internal server error. Session not found.",
+// 		})
+// 	}
+// 	fmt.Println("SESSION DETAILS---------------")
+// 	fmt.Printf("%+v\n", sess)
 
-	username := c.Params("username")
+// 	// Parsing data and creating a io.Reader for response body
+// 	data, _ := json.Marshal(responseBody)
+// 	reader := bytes.NewReader(data)
+// 	fmt.Println("RESPONSE BODY---------------")
+// 	fmt.Printf("%+v\n", responseBody)
 
-	//Get user by username
-	_, err = models.GetUserByName(username)
-	if err != nil { // Create user if not registered already
-		c.Status(500).JSON(&fiber.Map{
-			"error":   err,
-			"message": "Internal server error. User not found during validating attestation. Please register the user first.",
-		})
-	}
+// 	// testing .....
+// 	// var ccr protocol.CredentialCreationResponse
+// 	// json.NewDecoder(reader).Decode(&ccr)
+// 	// fmt.Printf("%+v", ccr)
 
-	// load the session data
-	// sess := config.GetSession()
-	// store, err := sess.Get(c)
-	// if err != nil {
-	// 	c.Status(500).JSON(&fiber.Map{
-	// 		"error":   err,
-	// 		"message": "Internal server error. Unable to get the session storage.",
-	// 	})
-	// }
-	// sessionData := store.Get("registration")
-	// fmt.Println(sessionData)
+// 	var ccr protocol.CredentialCreationResponse
 
-	// web := config.GetWebAuthn()
+// 	if err = json.NewDecoder(reader).Decode(&ccr); err != nil {
+// 		return nil
+// 	}
+// 	ccrAttest := ccr.AttestationResponse
+// 	p := &protocol.ParsedAttestationResponse{}
+// 	if err = json.Unmarshal(ccrAttest.ClientDataJSON, &p.CollectedClientData); err != nil {
+// 		return nil
+// 	}
 
-	// credential, err := web.FinishRegistration(user, sessionData, c.Response())
+// 	fmt.Println("CCR CREDENTIALS START---------------")
+// 	// ccr1, _ := ccr.AttestationResponse.Parse()
+// 	fmt.Printf("%+v", p.CollectedClientData)
+// 	fmt.Println("CCR CREDENTIALS END---------------")
 
-	// credential, err := web.CreateCredential(user, sessionData, response)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	c.Status(500).JSON(&fiber.Map{
-	// 		"error":   err,
-	// 		"message": "Internal server error. Unable to generate credentials.",
-	// 	})
-	// 	return
-	// }
+// 	response, err := protocol.ParseCredentialCreationResponseBody(reader)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		fmt.Println("Final Registration failed!!")
+// 		c.Status(400).JSON(&fiber.Map{
+// 			"error": err,
+// 		})
+// 		return err
+// 	}
+// 	fmt.Println("PARSED CREDENTIALS---------------")
+// 	fmt.Printf("%+v\n", response)
 
-	// user.AddCredential(*credential)
-	return nil
-}
+// 	// Create instance of webauthn SessionData
+// 	webSessionData := webauthn.SessionData{
+// 		Challenge:        sess.Challenge,
+// 		UserID:           utils.ConvertIntToByteArray(sess.UserID),
+// 		UserDisplayName:  sess.UserDisplayName,
+// 		Expires:          sess.Expires,
+// 		UserVerification: sess.UserVerification,
+// 	}
 
-func RegisterController(c *fiber.Ctx) error {
-	// beginRegistration(c)
-	return nil
-}
+// 	// Get instance of webauthn
+// 	web := config.GetWebAuthn()
+
+// 	// Create credentials for user
+// 	credential, err := web.CreateCredential(user, webSessionData, response)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		c.Status(500).JSON(&fiber.Map{
+// 			"error":   err,
+// 			"message": "Internal server error. Credential creation failed.",
+// 		})
+// 	}
+
+// 	// data, _ := json.Marshal(responseBody)
+// 	// reader := bytes.NewReader(data)
+
+// 	// req, _ := http.NewRequest("FinishRegistrationRequest", "http://localhost:3000/", reader)
+
+// 	// credential, err := web.FinishRegistration(user, webSessionData, req)
+// 	// if err != nil {
+// 	// 	fmt.Println(err)
+// 	// }
+// 	fmt.Println("CREDENTIAL DETAILS---------------")
+// 	fmt.Printf("%+v\n", credential)
+
+// 	return nil
+// }

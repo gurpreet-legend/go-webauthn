@@ -5,7 +5,8 @@ go 1.19
 require (
 	github.com/go-webauthn/webauthn v0.8.2
 	github.com/gofiber/fiber/v2 v2.44.0
-	github.com/gofiber/storage/mysql v1.3.5
+	github.com/gorilla/handlers v1.5.1
+	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.5.1
 	gorm.io/driver/mysql v1.5.0
 	gorm.io/gorm v1.25.0
@@ -13,6 +14,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/go-webauthn/revoke v0.1.9 // indirect

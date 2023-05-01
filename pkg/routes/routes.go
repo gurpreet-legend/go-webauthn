@@ -1,12 +1,22 @@
 package routes
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"net/http"
+
+	"github.com/gorilla/mux"
 	"github.com/remaster/webauthn/pkg/controllers"
 )
 
-func SetupRoutes(app *fiber.App) {
-	app.Get("/authenticate", controllers.AuthenticateController)
-	app.Get("/register/begin/:username", controllers.BeginRegistration)
-	app.Post("/register/finish/:username", controllers.FinishRegistration)
+var router *mux.Router
+
+func setupRoutes() {
+	router = mux.NewRouter()
+	router.Handle("/authenticate", http.HandlerFunc(controllers.AuthenticateController)).Methods("GET")
+	router.Handle("/register/begin/:username", http.HandlerFunc(controllers.BeginRegistration)).Methods("GET")
+	// router.Handle("/register/finish/:username", http.HandlerFunc(controllers.FinishRegistration)).Methods("POST")
+}
+
+func GetRouter() *mux.Router {
+	setupRoutes()
+	return router
 }

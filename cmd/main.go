@@ -1,11 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
 	"github.com/remaster/webauthn/pkg/config"
 	"github.com/remaster/webauthn/pkg/routes"
@@ -19,19 +20,13 @@ func main() {
 	//WebAuthn setup
 	config.SetupWebAuthn()
 
-	//Setup session
-	// config.CreateSession()
+	// //Setting up routes
+	router := routes.GetRouter()
 
-	app := fiber.New()
+	credentials := handlers.AllowCredentials()
+	methods := handlers.AllowedMethods([]string{"POST", "GET", "DELETE"})
+	origins := handlers.AllowedOrigins([]string{"www.example.com", "http://localhost:5500", "*"})
+	fmt.Println("Listening on port 3000...")
+	log.Fatal(http.ListenAndServe(os.Getenv("APP_PORT"), handlers.CORS(credentials, methods, origins)(router)))
 
-	//cors
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5500",
-		AllowHeaders: "Origin, Content-Type, Accept",
-	}))
-
-	//Setting up routes
-	routes.SetupRoutes(app)
-
-	log.Fatal(app.Listen(os.Getenv("APP_PORT")))
 }

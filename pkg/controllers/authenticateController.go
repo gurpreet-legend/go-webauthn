@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"net/http"
 )
 
-func AuthenticateController(c *fiber.Ctx) error {
-	return nil
+func AuthenticateController(w http.ResponseWriter, r *http.Request) {
+
 }
