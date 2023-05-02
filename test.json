@@ -14,3 +14,12 @@
     "Expires": "0001-01-01 00:00:00 +0000 UTC",
     "UserVerification": "preferred""extensions": "map[]"
 }
+{
+    "id": "m9cvpwN8On9rCcJ1fnA4ewRk2A6TrQMQwinZxL1N5Sg",
+    "rawId": "m9cvpwN8On9rCcJ1fnA4ewRk2A6TrQMQwinZxL1N5Sg",
+    "response": {
+        "attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YVkBZ0mWDeWIDoxodDQXD2R2YFuP5K65ooYyx5lc87qDHZdjRQAAAAAAAAAAAAAAAAAAAAAAAAAAACCb1y-nA3w6f2sJwnV-cDh7BGTYDpOtAxDCKdnEvU3lKKQBAwM5AQAgWQEA5groL3LpOJmK_7Dkwcli8p_oonuCFiavp5K21d11uzqEFoTLVPCxqHoS7bJBIXM-Kfe-2M5AcG1oPwFzjFQYKMJnylCyHfS7UIGmdlRL-vMQk2SCV5bLDJzO1oVVbQ3vNpftekbpUwlVEeQtIMe9CGgxLgTAoWoO2HWLzL1UqfcmwbIQoI7YoqvR6f7gmGMdHmkUt0k3HJTNYCFwGoBrFFFJ3FUe04YMvRad__JnNei7fmfLbAQlH9JCM9eSYYVfk0eYe0WZLhLCXgvu5FmlL68d0x8W713s91th6pbgqAbgwm6JbrLdVogniwiAIpI7FMrhyPq-OzXCy4tp17cxWSFDAQAB",
+        "clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiUTFaaFMxOW1TRlpUWDNsZlJUZDFaRmxwYnkwMmFGWmlYMlk0V2pCS09VbFhWSFpwWkVaaFlrTTJXUSIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTUwMCIsImNyb3NzT3JpZ2luIjpmYWxzZX0"
+    },
+    "type":"public-key"
+}

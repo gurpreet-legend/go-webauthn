@@ -54,15 +54,14 @@ func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 	utils.JsonResponse(w, options, http.StatusOK)
 }
 
-type NestedResponse struct {
-	AttestationObject string `json:"attestationObject"`
-	ClientDataJSON    string `json:"clientDataJSON"`
-}
 type AttestationResponse struct {
-	Id       string         `json:"id"`
-	RawId    string         `json:"rawId"`
-	Type     string         `json:"type"`
-	Response NestedResponse `json:"response"`
+	Id       string `json:"id"`
+	RawId    string `json:"rawId"`
+	Type     string `json:"type"`
+	Response struct {
+		AttestationObject string `json:"attestationObject"`
+		ClientDataJSON    string `json:"clientDataJSON"`
+	} `json:"response"`
 }
 
 func FinishRegistration(w http.ResponseWriter, r *http.Request) {

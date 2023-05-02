@@ -85,9 +85,10 @@
                     },
                 }
             console.log(payload)
+            console.log(JSON.stringify(payload))
             $.post(
                 'http://localhost:3000/register/finish/' + username,
-                payload,
+                JSON.stringify(payload),
                 function (data) {
                     return data
                 },
