@@ -50,3 +50,18 @@ func GetSessionByUserId(userId uint64) (SessionData, error) {
 	}
 	return getSession, nil
 }
+
+func UpdateSessionByUserId(challenge string, userId uint64, displayName string, expires time.Time, userVerification protocol.UserVerificationRequirement) (SessionData, error) {
+	var updateSession SessionData
+	result := db.Model(&updateSession).Where("user_id=?", userId).Updates(SessionData{
+		Challenge:        challenge,
+		UserID:           userId,
+		UserDisplayName:  displayName,
+		Expires:          expires,
+		UserVerification: userVerification,
+	})
+	if result.Error != nil {
+		return updateSession, result.Error
+	}
+	return updateSession, nil
+}
