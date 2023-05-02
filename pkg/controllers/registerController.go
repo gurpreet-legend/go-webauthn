@@ -41,15 +41,11 @@ func BeginRegistration(c *fiber.Ctx) error {
 	fmt.Println(uint64(binary.LittleEndian.Uint64(sessionData.UserID)))
 
 	// Storing session
-	models.CreateSession(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
 	_, err = models.GetSessionByUserId(user.Id)
 	if err != nil {
-		fmt.Println(err)
-		c.Status(500).JSON(&fiber.Map{
-			"error":   err,
-			"message": "Internal server error. Session storage failure\n",
-		})
-		return err
+		models.CreateSession(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
+	} else {
+		models.UpdateSessionByUserId(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
 	}
 
 	c.Status(200).JSON(&fiber.Map{
