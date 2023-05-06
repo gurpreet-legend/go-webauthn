@@ -61,10 +61,12 @@
         )
         .then(async (credentialCreationOptions) => {
             console.log(credentialCreationOptions.publicKey)
-            
+            console.log("SERVER'S CHALLENGE----------")
+            console.log(credentialCreationOptions.publicKey.challenge)
+            credentialCreationOptions.publicKey.attestation = "direct"
             credentialCreationOptions.publicKey.challenge = bufferDecode(credentialCreationOptions.publicKey.challenge);
             credentialCreationOptions.publicKey.user.id = bufferDecode(credentialCreationOptions.publicKey.user.id);
-            
+            console.log(credentialCreationOptions)
             return await navigator.credentials.create({
                 publicKey: credentialCreationOptions.publicKey
             })
@@ -73,6 +75,11 @@
             console.log(credential)
             let attestationObject = credential.response.attestationObject;
             let clientDataJSON = credential.response.clientDataJSON;
+            const utf8Decoder = new TextDecoder('utf-8');
+            const decodedClientData = utf8Decoder.decode(credential.response.clientDataJSON)
+            const clientDataObj = JSON.parse(decodedClientData);
+            // bufferEncodedClientDataJSON = bufferEncode(clientDataJSON)
+            console.log(clientDataObj)
             let rawId = credential.rawId;
             
             const payload = {

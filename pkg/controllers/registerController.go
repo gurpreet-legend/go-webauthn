@@ -39,6 +39,8 @@ func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("OPTIONS----------------")
+	fmt.Printf("%+v\n", options)
 	fmt.Println(uint64(binary.LittleEndian.Uint64(sessionData.UserID)))
 
 	// Storing session
