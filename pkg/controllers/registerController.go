@@ -145,7 +145,7 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 	// backToByte := utils.StringToBase64(credStr)
 	// fmt.Println("CREDENTIAL BYTE DETAILS---------------")
 	// fmt.Printf("%+v\n", backToByte)
-	_, err = models.GetCredentialByUserId(user.Id)
+	_, err = models.GetCredentialByCredId(credential.ID)
 	if err != nil {
 		models.CreateCredential(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
 	} else {

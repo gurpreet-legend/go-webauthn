@@ -56,6 +56,17 @@ func GetCredentialByUserId(userId uint64) (Credential, error) {
 	return getCredential, nil
 }
 
+func GetCredentialByCredId(credId []byte) (Credential, error) {
+	var getCredential Credential
+	result := db.Where("cred_id=?", credId).First(&getCredential)
+	if result.Error != nil {
+		return getCredential, result.Error
+	}
+	fmt.Println("GETTING CREDENTIALS -------")
+	fmt.Printf("%+v\n", getCredential)
+	return getCredential, nil
+}
+
 func UpdateCredentialByUserId(userId uint64, id, publicKey []byte, attestaionType string, authenticator Authenticator) (Credential, error) {
 	var updateCredential Credential
 	result := db.Model(&updateCredential).Where("user_id=?", userId).Updates(Credential{
