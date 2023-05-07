@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/duo-labs/webauthn/webauthn"
 )
 
 var (
@@ -14,9 +14,9 @@ var (
 func SetupWebAuthn() {
 	//Webauthn setup
 	wconfig := &webauthn.Config{
-		RPDisplayName: "Go Webauthn",                     // Display Name for your site
-		RPID:          "localhost",                       // Generally the FQDN for your site
-		RPOrigins:     []string{"http://localhost:3000"}, // The origin URLs allowed for WebAuthn requests
+		RPDisplayName: "Go Webauthn",           // Display Name for your site
+		RPID:          "localhost",             // Generally the FQDN for your site
+		RPOrigin:      "http://localhost:5500", // The origin URLs allowed for WebAuthn requests
 	}
 
 	if w, err = webauthn.New(wconfig); err != nil {

@@ -31,7 +31,7 @@
     //helper function
     // Base64 to ArrayBuffer
     function bufferDecode(value) {
-        return Uint8Array.from(value, c => c.charCodeAt(0));
+        return Uint8Array.from(atob(value), c => c.charCodeAt(0));
     }
 
     // ArrayBuffer to URLBase64
@@ -64,6 +64,10 @@
             console.log("SERVER'S CHALLENGE----------")
             console.log(credentialCreationOptions.publicKey.challenge)
             credentialCreationOptions.publicKey.attestation = "direct"
+            credentialCreationOptions.publicKey.timeout = 300000
+            credentialCreationOptions.publicKey.authenticatorSelection = {
+                "userVerification": "preferred"
+            }
             credentialCreationOptions.publicKey.challenge = bufferDecode(credentialCreationOptions.publicKey.challenge);
             credentialCreationOptions.publicKey.user.id = bufferDecode(credentialCreationOptions.publicKey.user.id);
             console.log(credentialCreationOptions)

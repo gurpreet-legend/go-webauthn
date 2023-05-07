@@ -7,7 +7,7 @@ import (
 
 	"github.com/remaster/webauthn/pkg/utils"
 
-	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/remaster/webauthn/pkg/config"
 
 	"gorm.io/gorm"

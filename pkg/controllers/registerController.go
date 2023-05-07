@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-webauthn/webauthn/protocol"
-	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/duo-labs/webauthn/protocol"
+	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/gorilla/mux"
 	"github.com/remaster/webauthn/pkg/config"
 	"github.com/remaster/webauthn/pkg/models"
@@ -46,9 +46,9 @@ func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 	// Storing session
 	_, err = models.GetSessionByUserId(user.Id)
 	if err != nil {
-		models.CreateSession(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
+		models.CreateSession(sessionData.Challenge, user.Id, sessionData.UserVerification)
 	} else {
-		models.UpdateSessionByUserId(sessionData.Challenge, user.Id, user.DisplayName, sessionData.Expires, sessionData.UserVerification)
+		models.UpdateSessionByUserId(sessionData.Challenge, user.Id, sessionData.UserVerification)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -134,10 +134,10 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 
 	// Create instance of webauthn SessionData
 	webSessionData := webauthn.SessionData{
-		Challenge:        sess.Challenge,
-		UserID:           utils.ConvertIntToByteArray(sess.UserID),
-		UserDisplayName:  sess.UserDisplayName,
-		Expires:          sess.Expires,
+		Challenge: sess.Challenge,
+		UserID:    utils.ConvertIntToByteArray(sess.UserID),
+		// UserDisplayName:  sess.UserDisplayName,
+		// Expires:          sess.Expires,
 		UserVerification: sess.UserVerification,
 	}
 
