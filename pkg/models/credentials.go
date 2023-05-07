@@ -51,8 +51,6 @@ func GetCredentialByUserId(userId uint64) ([]Credential, error) {
 	if result.Error != nil {
 		return getCredential, result.Error
 	}
-	fmt.Println("GETTING CREDENTIALS -------")
-	fmt.Printf("%+v\n", getCredential)
 	return getCredential, nil
 }
 
@@ -62,8 +60,6 @@ func GetCredentialByCredId(credId []byte) (Credential, error) {
 	if result.Error != nil {
 		return getCredential, result.Error
 	}
-	fmt.Println("GETTING CREDENTIALS -------")
-	fmt.Printf("%+v\n", getCredential)
 	return getCredential, nil
 }
 

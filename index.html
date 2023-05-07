@@ -144,30 +144,39 @@
         })
         .then((assertion) => {
             // TODO
-            console.log(assertion)
             let authData = assertion.response.authenticatorData;
             let clientDataJSON = assertion.response.clientDataJSON;
             let rawId = assertion.rawId;
             let sig = assertion.response.signature;
             let userHandle = assertion.response.userHandle;
-
-            $.post(
-                'http://localhost:3000/login/finish/' + username,
-                JSON.stringify({
+            let response = {
+                authenticatorData: bufferEncode(authData),
+                clientDataJSON: bufferEncode(clientDataJSON),
+                signature: bufferEncode(sig),
+                userHandle: bufferEncode(userHandle),
+            }
+            const payload = {
                 id: assertion.id,
                 rawId: bufferEncode(rawId),
                 type: assertion.type,
-                response: {
-                    authenticatorData: bufferEncode(authData),
-                    clientDataJSON: bufferEncode(clientDataJSON),
-                    signature: bufferEncode(sig),
-                    userHandle: bufferEncode(userHandle),
-                },
-                }),
+                response: response,
+            }
+            console.log(payload)
+            $.post(
+                'http://localhost:3000/login/finish/' + username,
+                JSON.stringify(payload),
                 function (data) {
-                return data
+                    return data
                 },
                 'json')
+                .then((success) => {
+                    alert("successfully logged in " + username + "!")
+                    return
+                })
+                .catch((error) => {
+                    console.log(error)
+                    alert("failed to register " + username)
+                })
         })
     }
 

@@ -73,8 +73,6 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error while parsing response body")
 		fmt.Println(err)
 	}
-	// fmt.Println("RESPONSE BODY---------------")
-	// fmt.Printf("%+v\n", responseBody)
 
 	// Parsing data and creating a io.Reader for response body
 	data, _ := json.Marshal(responseBody)
@@ -89,8 +87,6 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println("USER DETAILS---------------")
-	// fmt.Println(user)
 
 	// Load the session data
 	sess, err := models.GetSessionByUserId(user.Id)
@@ -99,8 +95,6 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println("SESSION DETAILS---------------")
-	// fmt.Printf("%+v\n", sess)
 
 	response, err := protocol.ParseCredentialCreationResponseBody(reader)
 	if err != nil {
@@ -108,15 +102,11 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println("PARSED CREDENTIALS---------------")
-	// fmt.Printf("%+v\n", response)
 
 	// Create instance of webauthn SessionData
 	webSessionData := webauthn.SessionData{
-		Challenge: sess.Challenge,
-		UserID:    utils.ConvertIntToByteArray(sess.UserID),
-		// UserDisplayName:  sess.UserDisplayName,
-		// Expires:          sess.Expires,
+		Challenge:        sess.Challenge,
+		UserID:           utils.ConvertIntToByteArray(sess.UserID),
 		UserVerification: sess.UserVerification,
 	}
 
@@ -139,20 +129,13 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		SignCount:    credential.Authenticator.SignCount,
 		CloneWarning: credential.Authenticator.CloneWarning,
 	}
-	// credStr := utils.Base64ToString(credential.ID)
-	// fmt.Println("CREDENTIAL STRING DETAILS---------------")
-	// fmt.Printf("%+v\n", credStr)
-	// backToByte := utils.StringToBase64(credStr)
-	// fmt.Println("CREDENTIAL BYTE DETAILS---------------")
-	// fmt.Printf("%+v\n", backToByte)
+
 	_, err = models.GetCredentialByCredId(credential.ID)
 	if err != nil {
 		models.CreateCredential(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
 	} else {
 		models.UpdateCredentialByUserId(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
 	}
-
-	// user.AddCredential(*credential)
 
 	utils.JsonResponse(w, "Registration success", http.StatusOK)
 }
