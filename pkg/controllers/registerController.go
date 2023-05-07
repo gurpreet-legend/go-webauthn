@@ -73,8 +73,8 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error while parsing response body")
 		fmt.Println(err)
 	}
-	fmt.Println("RESPONSE BODY---------------")
-	fmt.Printf("%+v\n", responseBody)
+	// fmt.Println("RESPONSE BODY---------------")
+	// fmt.Printf("%+v\n", responseBody)
 
 	// Parsing data and creating a io.Reader for response body
 	data, _ := json.Marshal(responseBody)
@@ -89,8 +89,8 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("USER DETAILS---------------")
-	fmt.Println(user)
+	// fmt.Println("USER DETAILS---------------")
+	// fmt.Println(user)
 
 	// Load the session data
 	sess, err := models.GetSessionByUserId(user.Id)
@@ -99,29 +99,8 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("SESSION DETAILS---------------")
-	fmt.Printf("%+v\n", sess)
-
-	// testing .....
-	// var ccr protocol.CredentialCreationResponse
-	// json.NewDecoder(reader).Decode(&ccr)
-	// fmt.Printf("%+v", ccr)
-
-	// var ccr protocol.CredentialCreationResponse
-
-	// if err = json.NewDecoder(reader).Decode(&ccr); err != nil {
-	// 	return nil
-	// }
-	// ccrAttest := ccr.AttestationResponse
-	// p := &protocol.ParsedAttestationResponse{}
-	// if err = json.Unmarshal(ccrAttest.ClientDataJSON, &p.CollectedClientData); err != nil {
-	// 	return nil
-	// }
-
-	// fmt.Println("CCR CREDENTIALS START---------------")
-	// // ccr1, _ := ccr.AttestationResponse.Parse()
-	// fmt.Printf("%+v", p.CollectedClientData)
-	// fmt.Println("CCR CREDENTIALS END---------------")
+	// fmt.Println("SESSION DETAILS---------------")
+	// fmt.Printf("%+v\n", sess)
 
 	response, err := protocol.ParseCredentialCreationResponseBody(reader)
 	if err != nil {
@@ -129,8 +108,8 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("PARSED CREDENTIALS---------------")
-	fmt.Printf("%+v\n", response)
+	// fmt.Println("PARSED CREDENTIALS---------------")
+	// fmt.Printf("%+v\n", response)
 
 	// Create instance of webauthn SessionData
 	webSessionData := webauthn.SessionData{
@@ -151,15 +130,29 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	// data, _ := json.Marshal(responseBody)
-	// reader := bytes.NewReader(data)
-
-	// req, _ := http.NewRequest("FinishRegistrationRequest", "http://localhost:3000/", reader)
-
-	// credential, err := web.FinishRegistration(user, webSessionData, req)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
 	fmt.Println("CREDENTIAL DETAILS---------------")
 	fmt.Printf("%+v\n", credential)
+
+	// Storing credentials
+	credAuth := models.Authenticator{
+		AAGUID:       credential.Authenticator.AAGUID,
+		SignCount:    credential.Authenticator.SignCount,
+		CloneWarning: credential.Authenticator.CloneWarning,
+	}
+	// credStr := utils.Base64ToString(credential.ID)
+	// fmt.Println("CREDENTIAL STRING DETAILS---------------")
+	// fmt.Printf("%+v\n", credStr)
+	// backToByte := utils.StringToBase64(credStr)
+	// fmt.Println("CREDENTIAL BYTE DETAILS---------------")
+	// fmt.Printf("%+v\n", backToByte)
+	_, err = models.GetCredentialByUserId(user.Id)
+	if err != nil {
+		models.CreateCredential(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
+	} else {
+		models.UpdateCredentialByUserId(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
+	}
+
+	// user.AddCredential(*credential)
+
+	utils.JsonResponse(w, "Registration success", http.StatusOK)
 }

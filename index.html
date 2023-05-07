@@ -115,6 +115,28 @@
         })
     }
 
+    //login
+    function loginUser() {
+
+        username = $("#email").val()
+        if (username === "") {
+          alert("please enter a username");
+          return;
+        }
+
+        $.get(
+          'http://localhost:3000/login/begin/' + username,
+          null,
+          function (data) {
+            return data
+          },
+          'json')
+          .then((credentialRequestOptions) => {
+              // TODO
+              console.log(credentialRequestOptions)
+          })
+    }
+
 
   </script>
 </body>
