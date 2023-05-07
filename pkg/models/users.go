@@ -21,7 +21,7 @@ type User struct {
 	Id          uint64 `gorm:"primaryKey"`
 	Name        string
 	DisplayName string
-	credentials []webauthn.Credential `gorm:"-:migration, type:text"`
+	Credentials []webauthn.Credential `gorm:"-"`
 }
 
 // User Model functions
@@ -47,13 +47,13 @@ func (user User) WebAuthnIcon() string {
 }
 
 // AddCredential associates the credential to the user
-func (user User) AddCredential(cred webauthn.Credential) {
-	user.credentials = append(user.credentials, cred)
+func (user *User) AddCredential(cred webauthn.Credential) {
+	user.Credentials = append(user.Credentials, cred)
 }
 
 // WebAuthnCredentials returns credentials owned by the user
 func (user User) WebAuthnCredentials() []webauthn.Credential {
-	return user.credentials
+	return user.Credentials
 }
 
 // Initialization function

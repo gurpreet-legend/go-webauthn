@@ -9,7 +9,7 @@ import (
 )
 
 type Authenticator struct {
-	AAGUID       []byte // []byte
+	AAGUID       []byte `gorm:"aaguid"` // []byte
 	SignCount    uint32
 	CloneWarning bool
 }
@@ -45,9 +45,9 @@ func CreateCredential(userId uint64, id, publicKey []byte, attestaionType string
 	return *cred
 }
 
-func GetCredentialByUserId(userId uint64) (Credential, error) {
-	var getCredential Credential
-	result := db.Where("user_id=?", userId).First(&getCredential)
+func GetCredentialByUserId(userId uint64) ([]Credential, error) {
+	var getCredential []Credential
+	result := db.Where("user_id=?", userId).Preload("Authenticator").Find(&getCredential)
 	if result.Error != nil {
 		return getCredential, result.Error
 	}
