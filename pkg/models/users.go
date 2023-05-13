@@ -3,8 +3,10 @@ package models
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 
+	"github.com/couchbase/gocb/v2"
 	"github.com/remaster/webauthn/pkg/utils"
 
 	"github.com/duo-labs/webauthn/webauthn"
@@ -61,6 +63,79 @@ func init() {
 	config.ConnectDB()
 	db = config.GetDB()
 	db.AutoMigrate(&User{})
+}
+
+type CouchUser struct {
+	Id          uint64 `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"display_name"`
+}
+
+// Couchbase functions
+func CouchGetUsers() ([]CouchUser, error) {
+	scope := config.GetDefaultScope()
+	queryString := "SELECT x.* FROM `webauthn-bucket`.`webauthn-scope`.`users` x"
+	var users []CouchUser
+	result, err := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{})
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Error getting all the users.")
+		return users, err
+	}
+
+	for result.Next() {
+		var user CouchUser
+		err := result.Row(&user)
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println("Error getting all the users.")
+			return users, err
+		}
+
+		users = append(users, user)
+	}
+	return users, nil
+}
+
+func CouchGetUserByName(username string) (CouchUser, error) {
+	scope := config.GetDefaultScope()
+	var user CouchUser
+	queryString := "SELECT x.* FROM `webauthn-bucket`.`webauthn-scope`.`users` x WHERE x.name=$username"
+	result, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
+		"username": username,
+	})
+	if dbErr != nil {
+		fmt.Println(dbErr)
+		fmt.Println("Error getting all the users.")
+		return user, dbErr
+	}
+
+	err := result.One(&user)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Error getting all the users.")
+		return user, err
+	}
+	return user, nil
+}
+
+func CouchCreateUser(name string, displayName string) error {
+	rand.Seed(time.Now().UnixNano())
+	user := &CouchUser{}
+	user.Id = rand.Uint64()
+	user.Name = name
+	user.DisplayName = displayName
+
+	users := config.GetDefaultScope().Collection("users")
+	_, err := users.Insert(strconv.FormatUint(user.Id, 10), user, &gocb.InsertOptions{
+		Timeout: 5 * time.Second,
+	})
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Error creating user.")
+		return err
+	}
+	return nil
 }
 
 // Database data extraction functions
