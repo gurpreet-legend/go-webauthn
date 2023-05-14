@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,17 +16,15 @@ import (
 )
 
 func BeginRegistration(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("BEGIN REGISTRATION STARTS--------------------")
 	params := mux.Vars(r)
 	username := params["username"]
 	fmt.Printf("%v\n", username)
 
 	//Get user by username
-	user, err := models.GetUserByName(username)
-	if err != nil { // Create user if not registered already
-		displayName := strings.Split(username, "@")[0]
-		models.CreateUser(username, displayName)
-		user, _ = models.GetUserByName(username)
-	}
+	displayName := strings.Split(username, "@")[0]
+	models.CreateUser(username, displayName)
+	user, _ := models.GetUserByName(username)
 
 	web := config.GetWebAuthn()
 
@@ -39,21 +36,13 @@ func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("OPTIONS----------------")
-	fmt.Printf("%+v\n", options)
-	fmt.Println(uint64(binary.LittleEndian.Uint64(sessionData.UserID)))
-
 	// Storing session
-	_, err = models.GetSessionByUserId(user.Id)
-	if err != nil {
-		models.CreateSession(sessionData.Challenge, user.Id, sessionData.UserVerification)
-	} else {
-		models.UpdateSessionByUserId(sessionData.Challenge, user.Id, sessionData.UserVerification)
-	}
+	models.CreateSession(sessionData)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	utils.JsonResponse(w, options, http.StatusOK)
+	fmt.Println("BEGIN REGISTRATION END--------------------")
 }
 
 type AttestationResponse struct {
@@ -67,6 +56,7 @@ type AttestationResponse struct {
 }
 
 func FinishRegistration(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("FINISH REGISTRATION STARTS--------------------")
 	var responseBody AttestationResponse
 	err := json.NewDecoder(r.Body).Decode(&responseBody)
 	if err != nil {
@@ -105,9 +95,11 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 
 	// Create instance of webauthn SessionData
 	webSessionData := webauthn.SessionData{
-		Challenge:        sess.Challenge,
-		UserID:           utils.ConvertIntToByteArray(sess.UserID),
-		UserVerification: sess.UserVerification,
+		Challenge:            sess.Challenge,
+		UserID:               utils.ConvertIntToByteArray(sess.UserID),
+		UserVerification:     sess.UserVerification,
+		Extensions:           sess.Extensions,
+		AllowedCredentialIDs: sess.AllowedCredentialIDs,
 	}
 
 	// Get instance of webauthn
@@ -138,4 +130,5 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JsonResponse(w, "Registration success", http.StatusOK)
+	fmt.Println("FINISH REGISTRATION ENDS--------------------")
 }

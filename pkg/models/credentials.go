@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-
-	"github.com/remaster/webauthn/pkg/config"
 )
 
 type Authenticator struct {
@@ -23,12 +21,12 @@ type Credential struct {
 }
 
 // Initialization function
-func init() {
-	config.ConnectDB()
-	db = config.GetDB()
-	db.AutoMigrate(&Authenticator{})
-	db.AutoMigrate(&Credential{})
-}
+// func init() {
+// 	config.ConnectDB()
+// 	db = config.GetDB()
+// 	db.AutoMigrate(&Authenticator{})
+// 	db.AutoMigrate(&Credential{})
+// }
 
 func CreateCredential(userId uint64, id, publicKey []byte, attestaionType string, authenticator Authenticator) Credential {
 	rand.Seed(time.Now().UnixNano())

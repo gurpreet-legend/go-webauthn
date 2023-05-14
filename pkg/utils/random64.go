@@ -18,6 +18,11 @@ func ConvertIntToByteArray(id uint64) []byte {
 	return buf
 }
 
+func ConvertByteArrayToInt(b []byte) uint64 {
+	num, _ := binary.Uvarint(b)
+	return num
+}
+
 func Base64ToString(b []byte) string {
 	return base64.StdEncoding.EncodeToString(b)
 }

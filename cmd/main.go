@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
 	"github.com/remaster/webauthn/pkg/config"
-	"github.com/remaster/webauthn/pkg/models"
 	"github.com/remaster/webauthn/pkg/routes"
 )
 
@@ -23,15 +22,11 @@ func main() {
 	//WebAuthn setup
 	config.SetupWebAuthn()
 
-	// //Setting up routes
+	// Setting up routes
 	router := routes.GetRouter()
 
 	// Initialize couchbase
 	config.InitCouchbaseConnection()
-
-	err = models.CouchCreateUser("wiz3@singh", "wiz3")
-	fmt.Println("HERE COMES THE ERROR")
-	fmt.Println(err)
 
 	credentials := handlers.AllowCredentials()
 	methods := handlers.AllowedMethods([]string{"POST", "GET", "DELETE"})

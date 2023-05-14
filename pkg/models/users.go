@@ -20,10 +20,10 @@ var db *gorm.DB
 // var User User
 
 type User struct {
-	Id          uint64 `gorm:"primaryKey"`
-	Name        string
-	DisplayName string
-	Credentials []webauthn.Credential `gorm:"-"`
+	Id          uint64                `json:"id"`
+	Name        string                `json:"name"`
+	DisplayName string                `json:"displayName"`
+	Credentials []webauthn.Credential `json:"credentials"`
 }
 
 // User Model functions
@@ -58,24 +58,11 @@ func (user User) WebAuthnCredentials() []webauthn.Credential {
 	return user.Credentials
 }
 
-// Initialization function
-func init() {
-	config.ConnectDB()
-	db = config.GetDB()
-	db.AutoMigrate(&User{})
-}
-
-type CouchUser struct {
-	Id          uint64 `json:"id"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-}
-
 // Couchbase functions
-func CouchGetUsers() ([]CouchUser, error) {
+func GetUsers() ([]User, error) {
 	scope := config.GetDefaultScope()
 	queryString := "SELECT x.* FROM `webauthn-bucket`.`webauthn-scope`.`users` x"
-	var users []CouchUser
+	var users []User
 	result, err := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{})
 	if err != nil {
 		fmt.Println(err)
@@ -84,7 +71,7 @@ func CouchGetUsers() ([]CouchUser, error) {
 	}
 
 	for result.Next() {
-		var user CouchUser
+		var user User
 		err := result.Row(&user)
 		if err != nil {
 			fmt.Println(err)
@@ -97,37 +84,38 @@ func CouchGetUsers() ([]CouchUser, error) {
 	return users, nil
 }
 
-func CouchGetUserByName(username string) (CouchUser, error) {
+func GetUserByName(username string) (User, error) {
 	scope := config.GetDefaultScope()
-	var user CouchUser
+	var user User
 	queryString := "SELECT x.* FROM `webauthn-bucket`.`webauthn-scope`.`users` x WHERE x.name=$username"
 	result, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
 		"username": username,
 	})
 	if dbErr != nil {
 		fmt.Println(dbErr)
-		fmt.Println("Error getting all the users.")
+		fmt.Println("User not found.")
 		return user, dbErr
 	}
 
 	err := result.One(&user)
 	if err != nil {
 		fmt.Println(err)
-		fmt.Println("Error getting all the users.")
+		fmt.Println("User not found.")
 		return user, err
 	}
 	return user, nil
 }
 
-func CouchCreateUser(name string, displayName string) error {
+func CreateUser(name string, displayName string) error {
 	rand.Seed(time.Now().UnixNano())
-	user := &CouchUser{}
-	user.Id = rand.Uint64()
-	user.Name = name
-	user.DisplayName = displayName
+	user := &User{
+		Id:          rand.Uint64(),
+		Name:        name,
+		DisplayName: displayName,
+	}
 
 	users := config.GetDefaultScope().Collection("users")
-	_, err := users.Insert(strconv.FormatUint(user.Id, 10), user, &gocb.InsertOptions{
+	_, err := users.Upsert(strconv.FormatUint(user.Id, 10), user, &gocb.UpsertOptions{
 		Timeout: 5 * time.Second,
 	})
 	if err != nil {
@@ -136,42 +124,4 @@ func CouchCreateUser(name string, displayName string) error {
 		return err
 	}
 	return nil
-}
-
-// Database data extraction functions
-func GetUsers() []User {
-	var users []User
-	db.Find(&users)
-	return users
-}
-
-func CreateUser(name string, displayName string) User {
-	rand.Seed(time.Now().UnixNano())
-	user := &User{}
-	user.Id = rand.Uint64()
-	user.Name = name
-	user.DisplayName = displayName
-	fmt.Println(user.Id)
-	fmt.Println(user.Name)
-	fmt.Println(user.DisplayName)
-	result := db.Create(&user)
-	if result.Error != nil {
-		fmt.Print(result.Error)
-	}
-	return *user
-}
-
-func GetUserByName(username string) (User, error) {
-	var getUser User
-	result := db.Where("name=?", username).First(&getUser)
-	if result.Error != nil {
-		return getUser, result.Error
-	}
-	return getUser, nil
-}
-
-func DeleteUser(username string) User {
-	deleteUser, _ := GetUserByName(username)
-	db.Delete(deleteUser)
-	return deleteUser
 }
