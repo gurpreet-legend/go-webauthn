@@ -16,7 +16,6 @@ import (
 )
 
 func BeginRegistration(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("BEGIN REGISTRATION STARTS--------------------")
 	params := mux.Vars(r)
 	username := params["username"]
 	fmt.Printf("%v\n", username)
@@ -45,7 +44,6 @@ func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	utils.JsonResponse(w, options, http.StatusOK)
-	fmt.Println("BEGIN REGISTRATION END--------------------")
 }
 
 type AttestationResponse struct {
@@ -59,7 +57,6 @@ type AttestationResponse struct {
 }
 
 func FinishRegistration(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("FINISH REGISTRATION STARTS--------------------")
 	var responseBody AttestationResponse
 	err := json.NewDecoder(r.Body).Decode(&responseBody)
 	if err != nil {
@@ -121,19 +118,6 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ADD CREDENTIAL ERROR")
 		fmt.Println(err)
 	}
-	// credAuth := models.Authenticator{
-	// 	AAGUID:       credential.Authenticator.AAGUID,
-	// 	SignCount:    credential.Authenticator.SignCount,
-	// 	CloneWarning: credential.Authenticator.CloneWarning,
-	// }
-
-	// _, err = models.GetCredentialByCredId(credential.ID)
-	// if err != nil {
-	// 	models.CreateCredential(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
-	// } else {
-	// 	models.UpdateCredentialByUserId(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
-	// }
 
 	utils.JsonResponse(w, "Registration success", http.StatusOK)
-	fmt.Println("FINISH REGISTRATION ENDS--------------------")
 }

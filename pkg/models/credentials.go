@@ -34,10 +34,10 @@ func AddCredentialToUser(userId uint64, credential *webauthn.Credential) (Creden
 			CloneWarning: credential.Authenticator.CloneWarning,
 		},
 	}
-	fmt.Println("HERE IS THE CREDENTIAL-------------")
-	fmt.Printf("%+v\n", cred)
-	fmt.Println("USER ID TO STORE CRED-------------")
-	fmt.Printf("%+v\n", userId)
+	// fmt.Println("HERE IS THE CREDENTIAL-------------")
+	// fmt.Printf("%+v\n", cred)
+	// fmt.Println("USER ID TO STORE CRED-------------")
+	// fmt.Printf("%+v\n", userId)
 	scope := config.GetDefaultScope()
 	queryString := "UPDATE `webauthn-bucket`.`webauthn-scope`.`users` u SET u.credentials = ARRAY_DISTINCT(ARRAY_APPEND(u.credentials, $cred)) WHERE META().id=$userId"
 	_, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
@@ -53,10 +53,23 @@ func AddCredentialToUser(userId uint64, credential *webauthn.Credential) (Creden
 }
 
 func GetCredentialByUserId(userId uint64) ([]Credential, error) {
+	scope := config.GetDefaultScope()
 	var getCredential []Credential
-	result := db.Where("user_id=?", userId).Preload("Authenticator").Find(&getCredential)
-	if result.Error != nil {
-		return getCredential, result.Error
+	queryString := "SELECT x.credentials FROM `webauthn-bucket`.`webauthn-scope`.`users` x WHERE META().id=$userId"
+	result, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
+		"userId": userId,
+	})
+	if dbErr != nil {
+		fmt.Println(dbErr)
+		fmt.Println("User not found.")
+		return getCredential, dbErr
+	}
+
+	err := result.One(&getCredential)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("User not found.")
+		return getCredential, err
 	}
 	return getCredential, nil
 }

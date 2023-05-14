@@ -66,27 +66,27 @@ func GetSessionByUserId(userId uint64) (SessionData, error) {
 	return getSession, nil
 }
 
-// func UpdateSessionByUserId(userId uint64, sessionData webauthn.SessionData) (SessionData, error) {
-// 	var updateSession SessionData
+func UpdateSessionByUserId(userId uint64, sessionData *webauthn.SessionData) (SessionData, error) {
+	var updateSession SessionData
 
-// 	session := &SessionData{
-// 		Challenge:            sessionData.Challenge,
-// 		UserID:               utils.ConvertByteArrayToInt(sessionData.UserID),
-// 		UserVerification:     sessionData.UserVerification,
-// 		AllowedCredentialIDs: sessionData.AllowedCredentialIDs,
-// 		Extensions:           sessionData.Extensions,
-// 	}
+	session := &SessionData{
+		Challenge:            sessionData.Challenge,
+		UserID:               utils.ConvertByteArrayToInt(sessionData.UserID),
+		UserVerification:     sessionData.UserVerification,
+		AllowedCredentialIDs: sessionData.AllowedCredentialIDs,
+		Extensions:           sessionData.Extensions,
+	}
 
-// 	sessions := config.GetDefaultScope().Collection("sessions")
-// 	_, err := sessions.Replace(strconv.FormatUint(session.UserID, 10), session, &gocb.ReplaceOptions{
-// 		Timeout: 5 * time.Second,
-// 		Expiry:  10 * time.Minute,
-// 	})
+	sessions := config.GetDefaultScope().Collection("sessions")
+	_, err := sessions.Replace(strconv.FormatUint(session.UserID, 10), session, &gocb.ReplaceOptions{
+		Timeout: 5 * time.Second,
+		Expiry:  10 * time.Minute,
+	})
 
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		fmt.Println("Error creating session.")
-// 		return *session, err
-// 	}
-// 	return updateSession, nil
-// }
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Error creating session.")
+		return *session, err
+	}
+	return updateSession, nil
+}
