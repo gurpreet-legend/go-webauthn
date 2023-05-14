@@ -112,10 +112,11 @@ func CreateUser(name string, displayName string) error {
 		Id:          rand.Uint64(),
 		Name:        name,
 		DisplayName: displayName,
+		Credentials: []webauthn.Credential{},
 	}
 
 	users := config.GetDefaultScope().Collection("users")
-	_, err := users.Upsert(strconv.FormatUint(user.Id, 10), user, &gocb.UpsertOptions{
+	_, err := users.Insert(strconv.FormatUint(user.Id, 10), user, &gocb.InsertOptions{
 		Timeout: 5 * time.Second,
 	})
 	if err != nil {

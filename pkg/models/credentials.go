@@ -3,44 +3,53 @@ package models
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
+
+	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/remaster/webauthn/pkg/config"
 )
 
 type Authenticator struct {
-	AAGUID       []byte `gorm:"aaguid"` // []byte
-	SignCount    uint32
-	CloneWarning bool
+	AAGUID       []byte `json:"aaguId"`
+	SignCount    uint32 `json:"signCount"`
+	CloneWarning bool   `json:"cloneWarning"`
 }
-
 type Credential struct {
-	UserID          uint64
-	CredID          []byte `gorm:"size:700;primaryKey"` // []byte
-	PublicKey       []byte // []byte
-	AttestationType string
-	Authenticator   Authenticator `gorm:"foreignKey:AAGUID"`
+	ID              []byte        `json:"id"`
+	PublicKey       []byte        `json:"publicKey"`
+	AttestationType string        `json:"attestationType"`
+	Authenticator   Authenticator `json:"authenticator"`
 }
 
-// Initialization function
-// func init() {
-// 	config.ConnectDB()
-// 	db = config.GetDB()
-// 	db.AutoMigrate(&Authenticator{})
-// 	db.AutoMigrate(&Credential{})
-// }
-
-func CreateCredential(userId uint64, id, publicKey []byte, attestaionType string, authenticator Authenticator) Credential {
+func AddCredentialToUser(userId uint64, credential *webauthn.Credential) (Credential, error) {
 	rand.Seed(time.Now().UnixNano())
-	cred := &Credential{}
-	cred.UserID = userId
-	cred.CredID = id
-	cred.PublicKey = publicKey
-	cred.AttestationType = attestaionType
-	cred.Authenticator = authenticator
-	result := db.Create(&cred)
-	if result.Error != nil {
-		fmt.Print(result.Error)
+	cred := Credential{
+		ID:              credential.ID,
+		PublicKey:       credential.PublicKey,
+		AttestationType: credential.AttestationType,
+		Authenticator: Authenticator{
+			AAGUID:       credential.Authenticator.AAGUID,
+			SignCount:    credential.Authenticator.SignCount,
+			CloneWarning: credential.Authenticator.CloneWarning,
+		},
 	}
-	return *cred
+	fmt.Println("HERE IS THE CREDENTIAL-------------")
+	fmt.Printf("%+v\n", cred)
+	fmt.Println("USER ID TO STORE CRED-------------")
+	fmt.Printf("%+v\n", userId)
+	scope := config.GetDefaultScope()
+	queryString := "UPDATE `webauthn-bucket`.`webauthn-scope`.`users` u SET u.credentials = ARRAY_DISTINCT(ARRAY_APPEND(u.credentials, $cred)) WHERE META().id=$userId"
+	_, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
+		"cred":   cred,
+		"userId": strconv.FormatUint(userId, 10),
+	})
+	if dbErr != nil {
+		fmt.Println(dbErr)
+		fmt.Println("User not found.")
+		return cred, dbErr
+	}
+	return cred, nil
 }
 
 func GetCredentialByUserId(userId uint64) ([]Credential, error) {
@@ -61,17 +70,17 @@ func GetCredentialByCredId(credId []byte) (Credential, error) {
 	return getCredential, nil
 }
 
-func UpdateCredentialByUserId(userId uint64, id, publicKey []byte, attestaionType string, authenticator Authenticator) (Credential, error) {
-	var updateCredential Credential
-	result := db.Model(&updateCredential).Where("user_id=?", userId).Updates(Credential{
-		UserID:          userId,
-		CredID:          id,
-		PublicKey:       publicKey,
-		AttestationType: attestaionType,
-		Authenticator:   authenticator,
-	})
-	if result.Error != nil {
-		return updateCredential, result.Error
-	}
-	return updateCredential, nil
-}
+// func UpdateCredentialByUserId(userId uint64, id, publicKey []byte, attestaionType string, authenticator Authenticator) (Credential, error) {
+// 	var updateCredential Credential
+// 	result := db.Model(&updateCredential).Where("user_id=?", userId).Updates(Credential{
+// 		UserID:          userId,
+// 		CredID:          id,
+// 		PublicKey:       publicKey,
+// 		AttestationType: attestaionType,
+// 		Authenticator:   authenticator,
+// 	})
+// 	if result.Error != nil {
+// 		return updateCredential, result.Error
+// 	}
+// 	return updateCredential, nil
+// }

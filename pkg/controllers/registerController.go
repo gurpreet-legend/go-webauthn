@@ -22,9 +22,12 @@ func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("%v\n", username)
 
 	//Get user by username
-	displayName := strings.Split(username, "@")[0]
-	models.CreateUser(username, displayName)
-	user, _ := models.GetUserByName(username)
+	user, err := models.GetUserByName(username)
+	if err != nil {
+		displayName := strings.Split(username, "@")[0]
+		models.CreateUser(username, displayName)
+		user, _ = models.GetUserByName(username)
+	}
 
 	web := config.GetWebAuthn()
 
@@ -112,22 +115,24 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	fmt.Println("CREDENTIAL DETAILS---------------")
-	fmt.Printf("%+v\n", credential)
-
 	// Storing credentials
-	credAuth := models.Authenticator{
-		AAGUID:       credential.Authenticator.AAGUID,
-		SignCount:    credential.Authenticator.SignCount,
-		CloneWarning: credential.Authenticator.CloneWarning,
-	}
-
-	_, err = models.GetCredentialByCredId(credential.ID)
+	_, err = models.AddCredentialToUser(user.Id, credential)
 	if err != nil {
-		models.CreateCredential(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
-	} else {
-		models.UpdateCredentialByUserId(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
+		fmt.Println("ADD CREDENTIAL ERROR")
+		fmt.Println(err)
 	}
+	// credAuth := models.Authenticator{
+	// 	AAGUID:       credential.Authenticator.AAGUID,
+	// 	SignCount:    credential.Authenticator.SignCount,
+	// 	CloneWarning: credential.Authenticator.CloneWarning,
+	// }
+
+	// _, err = models.GetCredentialByCredId(credential.ID)
+	// if err != nil {
+	// 	models.CreateCredential(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
+	// } else {
+	// 	models.UpdateCredentialByUserId(user.Id, credential.ID, credential.PublicKey, credential.AttestationType, credAuth)
+	// }
 
 	utils.JsonResponse(w, "Registration success", http.StatusOK)
 	fmt.Println("FINISH REGISTRATION ENDS--------------------")
