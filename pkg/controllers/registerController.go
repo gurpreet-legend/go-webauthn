@@ -18,7 +18,6 @@ import (
 func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	username := params["username"]
-	fmt.Printf("%v\n", username)
 
 	//Get user by username
 	user, err := models.GetUserByName(username)
