@@ -1,8 +1,43 @@
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Outlet,
+  Route,
+  Link,
+} from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import { useEffect } from "react";
+
+const Root = ({ children }) => {
+  return <Outlet>{children}</Outlet>;
+};
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Root />,
+    children: [
+      { path: "", element: <Login /> },
+      { path: "dashboard", element: <Dashboard /> },
+    ],
+  },
+]);
+
 function App() {
+  useEffect(() => {
+      // check whether current browser supports WebAuthn
+      if (!window.PublicKeyCredential) {
+          console.log("doesn't support supports webauthn");
+          alert('Error: this browser does not support WebAuthn');
+          return;
+      }
+  }, [])
+  
   return (
-    <>
-      AUTH
-    </>
+    <div>
+      <RouterProvider router={router} />
+    </div>
   )
 }
 
