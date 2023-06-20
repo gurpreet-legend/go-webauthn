@@ -12,3 +12,8 @@ function bufferEncode(value) {
         .replace(/=/g, "");;
 }
 
+export {
+    bufferDecode,
+    bufferEncode
+}
+
