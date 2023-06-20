@@ -16,7 +16,7 @@ func SetupWebAuthn() {
 	wconfig := &webauthn.Config{
 		RPDisplayName: "Go Webauthn",           // Display Name for your site
 		RPID:          "localhost",             // Generally the FQDN for your site
-		RPOrigin:      "http://localhost:5500", // The origin URLs allowed for WebAuthn requests
+		RPOrigin:      "http://localhost:5173", // The origin URLs allowed for WebAuthn requests
 	}
 
 	if w, err = webauthn.New(wconfig); err != nil {

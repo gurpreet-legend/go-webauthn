@@ -29,9 +29,10 @@ func main() {
 	config.InitCouchbaseConnection()
 
 	credentials := handlers.AllowCredentials()
-	methods := handlers.AllowedMethods([]string{"POST", "GET", "DELETE"})
-	origins := handlers.AllowedOrigins([]string{"http://localhost:5500", "*"})
+	headers := handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin", "*"})
+	methods := handlers.AllowedMethods([]string{"POST", "GET", "DELETE", "*"})
+	origins := handlers.AllowedOrigins([]string{"http://localhost:5173", "http://127.0.0.1:5173", "*"})
 	fmt.Println("Listening on port 3000...")
-	log.Fatal(http.ListenAndServe(":3000", handlers.CORS(credentials, methods, origins)(router)))
+	log.Fatal(http.ListenAndServe(":3000", handlers.CORS(credentials, methods, origins, headers)(router)))
 
 }
