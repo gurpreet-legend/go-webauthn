@@ -110,6 +110,7 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error while creating credentials")
 		fmt.Println(err)
 	}
+	fmt.Printf("CREDENTIAL: %+v\n", credential)
 
 	// Storing credentials
 	_, err = models.AddCredentialToUser(user.Id, credential)

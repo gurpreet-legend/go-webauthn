@@ -39,14 +39,15 @@ func AddCredentialToUser(userId uint64, credential *webauthn.Credential) (Creden
 	// fmt.Println("USER ID TO STORE CRED-------------")
 	// fmt.Printf("%+v\n", userId)
 	scope := config.GetDefaultScope()
-	queryString := "UPDATE `webauthn-bucket`.`webauthn-scope`.`users` u SET u.credentials = ARRAY_DISTINCT(ARRAY_APPEND(u.credentials, $cred)) WHERE META().id=$userId"
+	fmt.Printf("%+v\n", cred)
+	queryString := "UPDATE `webauthn-bucket`.`webauthn-scope`.`users` u SET u.credentials = ARRAY_DISTINCT(ARRAY_APPEND(u.credentials, $cred)) WHERE u.id=$userId"
 	_, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
 		"cred":   cred,
 		"userId": strconv.FormatUint(userId, 10),
 	})
 	if dbErr != nil {
 		fmt.Println(dbErr)
-		fmt.Println("User not found.")
+		fmt.Println("User not found for adding credentials.")
 		return cred, dbErr
 	}
 	return cred, nil

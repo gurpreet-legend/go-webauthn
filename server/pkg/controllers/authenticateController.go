@@ -31,6 +31,7 @@ func BeginLogin(w http.ResponseWriter, r *http.Request) {
 
 	options, sessionData, err := web.BeginLogin(user)
 	if err != nil {
+		fmt.Println(user.Credentials)
 		fmt.Println("Error while BeginLogin function.")
 		fmt.Println(err)
 		utils.JsonResponse(w, err.Error(), http.StatusInternalServerError)
@@ -106,6 +107,7 @@ func FinishLogin(w http.ResponseWriter, r *http.Request) {
 
 	_, err = web.ValidateLogin(user, webSessionData, response)
 	if err != nil {
+		fmt.Println(user.Credentials)
 		fmt.Println("Error while validating credentials.")
 		fmt.Println(err)
 		utils.JsonResponse(w, err, http.StatusInternalServerError)
