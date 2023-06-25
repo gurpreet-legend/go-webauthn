@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/remaster/webauthn/pkg/utils"
 )
 
+var ErrCredentialsInvalid = errors.New("Error while validating credentials.")
+
 func BeginLogin(w http.ResponseWriter, r *http.Request) {
 
 	//Get user by username
@@ -21,9 +24,22 @@ func BeginLogin(w http.ResponseWriter, r *http.Request) {
 	username := params["username"]
 	user, err := models.GetUserByName(username)
 	if err != nil {
-		fmt.Println("Error while logging user.")
+		if err == models.ErrUserNotFound {
+			errorMessage := fmt.Sprintf("User '%s' not found.", username)
+			fmt.Println(errorMessage)
+			utils.JsonResponse(w, errorMessage, http.StatusNotFound)
+			return
+		}
+
+		// Other error occurred
 		fmt.Println(err)
-		utils.JsonResponse(w, err, http.StatusInternalServerError)
+		utils.JsonResponse(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if len(user.Credentials) == 0 {
+		totpFallback()
+		utils.JsonResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
@@ -31,12 +47,13 @@ func BeginLogin(w http.ResponseWriter, r *http.Request) {
 
 	options, sessionData, err := web.BeginLogin(user)
 	if err != nil {
-		fmt.Println(user.Credentials)
 		fmt.Println("Error while BeginLogin function.")
 		fmt.Println(err)
 		utils.JsonResponse(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	fmt.Printf("OPTIONS------\n %+v\n", options)
+	fmt.Printf("SESSIONDATA------\n %+v\n", sessionData)
 
 	// store session data as marshaled JSON
 	_, err = models.GetSessionByUserId(user.Id)
@@ -74,6 +91,7 @@ func FinishLogin(w http.ResponseWriter, r *http.Request) {
 	reader := bytes.NewReader(data)
 	response, _ := protocol.ParseCredentialRequestResponseBody(reader)
 
+	fmt.Printf("PARSED CREDENTIAL RESPONSE-----\n%+v\n", response)
 	//Get user by username
 	params := mux.Vars(r)
 	username := params["username"]
@@ -84,6 +102,8 @@ func FinishLogin(w http.ResponseWriter, r *http.Request) {
 		utils.JsonResponse(w, err, http.StatusInternalServerError)
 		return
 	}
+	fmt.Printf("USER HANDLE-----\n%v\n", utils.ConvertByteArrayToInt(response.Response.UserHandle))
+	fmt.Printf("USER HANDLE-----\n%v\n", utils.ConvertByteArrayToInt(user.WebAuthnID()))
 
 	// get webauthn instance
 	web := config.GetWebAuthn()
@@ -110,7 +130,7 @@ func FinishLogin(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(user.Credentials)
 		fmt.Println("Error while validating credentials.")
 		fmt.Println(err)
-		utils.JsonResponse(w, err, http.StatusInternalServerError)
+		utils.JsonResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -18,6 +19,7 @@ import (
 var db *gorm.DB
 
 // var User User
+var ErrUserNotFound = errors.New("User not found")
 
 type User struct {
 	Id          uint64                `json:"id"`
@@ -101,7 +103,7 @@ func GetUserByName(username string) (User, error) {
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("User not found.")
-		return user, err
+		return user, ErrUserNotFound
 	}
 	return user, nil
 }

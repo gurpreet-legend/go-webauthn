@@ -39,11 +39,14 @@ func AddCredentialToUser(userId uint64, credential *webauthn.Credential) (Creden
 	// fmt.Println("USER ID TO STORE CRED-------------")
 	// fmt.Printf("%+v\n", userId)
 	scope := config.GetDefaultScope()
-	fmt.Printf("%+v\n", cred)
-	queryString := "UPDATE `webauthn-bucket`.`webauthn-scope`.`users` u SET u.credentials = ARRAY_DISTINCT(ARRAY_APPEND(u.credentials, $cred)) WHERE u.id=$userId"
+	// fmt.Printf("CREDENTIAL-----\n%+v\n", cred)
+	parsedUserId := strconv.FormatUint(userId, 10)
+	// fmt.Printf("USERID-----\n%+v\n", parsedUserId)
+	// fmt.Printf("TYPE OF USERID-----\n%T\n", parsedUserId)
+	queryString := "UPDATE `webauthn-bucket`.`webauthn-scope`.`users` u SET u.credentials = ARRAY_DISTINCT(ARRAY_APPEND(u.credentials, $cred)) WHERE META().id = $userId"
 	_, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
 		"cred":   cred,
-		"userId": strconv.FormatUint(userId, 10),
+		"userId": parsedUserId,
 	})
 	if dbErr != nil {
 		fmt.Println(dbErr)
@@ -56,9 +59,10 @@ func AddCredentialToUser(userId uint64, credential *webauthn.Credential) (Creden
 func GetCredentialByUserId(userId uint64) ([]Credential, error) {
 	scope := config.GetDefaultScope()
 	var getCredential []Credential
-	queryString := "SELECT x.credentials FROM `webauthn-bucket`.`webauthn-scope`.`users` x WHERE META().id=$userId"
+	parsedUserId := strconv.FormatUint(userId, 10)
+	queryString := "SELECT x.credentials FROM `webauthn-bucket`.`webauthn-scope`.`users` x WHERE META().id = $userId"
 	result, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
-		"userId": userId,
+		"userId": parsedUserId,
 	})
 	if dbErr != nil {
 		fmt.Println(dbErr)
