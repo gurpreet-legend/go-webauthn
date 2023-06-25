@@ -37,6 +37,7 @@ func BeginLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// WILL IMPLEMENT SOON....
 	if len(user.Credentials) == 0 {
 		totpFallback()
 		utils.JsonResponse(w, err, http.StatusUnauthorized)
@@ -54,6 +55,8 @@ func BeginLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("OPTIONS------\n %+v\n", options)
 	fmt.Printf("SESSIONDATA------\n %+v\n", sessionData)
+	fmt.Printf("User CREDENTIAL ID------\n %+v\n", user.Credentials[0].ID)
+	fmt.Printf("ALLOWED CREDS------\n %+v\n", sessionData.AllowedCredentialIDs[0])
 
 	// store session data as marshaled JSON
 	_, err = models.GetSessionByUserId(user.Id)

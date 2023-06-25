@@ -57,7 +57,7 @@ const Form = () => {
                 'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
-            });
+            })
         })
         .then((success) => {
             alert("successfully registered " + username + "!")
@@ -79,15 +79,28 @@ const Form = () => {
         }
 
         fetch(`http://localhost:3000/login/begin/${username}`)
-        .then(response => response.json())
-        .then((credentialRequestOptions) => {
+        .then(response => {
+            if(response.status === 404) {
+                throw new Error("User not found");
+            }
+            if (!response.ok) {
+                throw new Error("Failed to login");
+            }
+            return response.json()
+        })
+        .then(async (credentialRequestOptions) => {
             credentialRequestOptions.publicKey.challenge = bufferDecode(credentialRequestOptions.publicKey.challenge);
             credentialRequestOptions.publicKey.allowCredentials.forEach(function (listItem) {
                 listItem.id = bufferDecode(listItem.id)
             });
 
-            return navigator.credentials.get({
+            return await navigator.credentials.get({
                 publicKey: credentialRequestOptions.publicKey
+            })
+            .catch((err) => {
+                console.log(err)
+                console.log("CREDENTIALS WAS NOT ASSERTED")
+                alert("failed to login because the device is not registered." + username)
             })
         })
         .then((assertion) => {
@@ -110,14 +123,20 @@ const Form = () => {
                 response: response,
             }
             console.log(payload)
-            fetch(`http://localhost:3000/register/finish/${username}`, {
+            fetch(`http://localhost:3000/login/finish/${username}`, {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
             })
-            .then((success) => {
+            .then((response) => {
+                if(response.status === 401) {
+
+                }
+                if(!response.ok) {
+                    throw new Error("Failed to login");
+                }
                 alert("successfully logged in " + username + "!")
                 return
             })
@@ -125,6 +144,14 @@ const Form = () => {
                 console.log(error)
                 alert("failed to register " + username)
             })
+        })
+        .catch((err) => {
+            if(err.message === "User not found") {
+                alert("User not found. Please register the user.");
+            } else {
+                console.log(err)
+                alert("failed to login " + username)
+            }
         })
     }
     
