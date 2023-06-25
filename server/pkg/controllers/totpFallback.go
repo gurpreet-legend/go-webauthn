@@ -16,8 +16,8 @@ import (
 )
 
 type TotpNonce struct {
-	Nonce      string
-	ExpiryTime time.Time
+	Nonce      string    `json:"nonce"`
+	ExpiryTime time.Time `json:"expiryTime"`
 }
 
 func totpFallback() {
@@ -87,7 +87,16 @@ func GenerateOTP(w http.ResponseWriter, r *http.Request) {
 		ExpiryTime: expiryTime,
 	}
 	fmt.Printf("Successfully generated totp `%s` with an expiry time of `%v`", passcode, expiryTime)
+	// emailBody := fmt.Sprintf("OTP: %s and ExpiryTime: %s\n", passcode, expiryTime)
+	// err = utils.SendEmailViaSMTP([]string{username}, []string{}, "Here is your webauthn OTP", emailBody, nil)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 	utils.JsonResponse(w, res, http.StatusOK)
+}
+
+type VerifyRequest struct {
+	Nonce string `json:"nonce"`
 }
 
 func VerifyOTP(w http.ResponseWriter, r *http.Request) {
@@ -107,8 +116,8 @@ func VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		utils.JsonResponse(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	var responseBody TotpNonce
-	err = json.NewDecoder(r.Body).Decode(&responseBody)
+	var responseBody VerifyRequest
+	_ = json.NewDecoder(r.Body).Decode(&responseBody)
 	verified, err := VerifySaltFromOTP(responseBody.Nonce, strconv.FormatUint(user.Id, 10), time.Now())
 	if err != nil {
 		fmt.Println("Error verifying totp")

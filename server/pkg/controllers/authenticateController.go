@@ -38,11 +38,11 @@ func BeginLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// WILL IMPLEMENT SOON....
-	if len(user.Credentials) == 0 {
-		totpFallback()
-		utils.JsonResponse(w, err, http.StatusUnauthorized)
-		return
-	}
+	// if len(user.Credentials) == 0 {
+	// 	totpFallback()
+	// 	utils.JsonResponse(w, err, http.StatusUnauthorized)
+	// 	return
+	// }
 
 	web := config.GetWebAuthn()
 

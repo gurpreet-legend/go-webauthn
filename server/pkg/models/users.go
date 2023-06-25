@@ -89,7 +89,7 @@ func GetUsers() ([]User, error) {
 func GetUserByName(username string) (User, error) {
 	scope := config.GetDefaultScope()
 	var user User
-	queryString := "SELECT x.* FROM `webauthn-bucket`.`webauthn-scope`.`users` x WHERE x.name=$username"
+	queryString := "SELECT x.* FROM `webauthn-bucket`.`webauthn-scope`.`users` x WHERE x.name = $username"
 	result, dbErr := config.ExecuteDBQuery(scope, queryString, &config.DBQueryParameters{
 		"username": username,
 	})
