@@ -13,8 +13,8 @@ func SendEmailViaSMTP(tos []string, cc []string, title string, body string, proc
 	client := mail.NewSMTPClient()
 	client.Host = "smtp.gmail.com"
 	client.Port = 587
-	client.Username = "lostymailtest@gmail.com"
-	client.Password = "Testadmin123"
+	client.Username = "#"
+	client.Password = "#"
 	client.Encryption = mail.EncryptionSTARTTLS
 	client.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	client.ConnectTimeout = 60 * time.Second
