@@ -8,6 +8,7 @@ import {
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import { useEffect } from "react";
+import TotpFallbackPage from "./pages/TotpFallbackPage/TotpFallbackPage";
 
 const Root = ({ children }) => {
   return <Outlet>{children}</Outlet>;
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
     children: [
       { path: "", element: <Login /> },
       { path: "dashboard", element: <Dashboard /> },
+      { path: "totp/:username", element: <TotpFallbackPage /> },
     ],
   },
 ]);

@@ -1,5 +1,6 @@
 import React, { useRef } from 'react'
 import { bufferDecode, bufferEncode } from '../../utils/helper'
+import { Link } from 'react-router-dom'
 
 const Form = () => {
     const emailEl = useRef('')
@@ -99,8 +100,17 @@ const Form = () => {
             })
             .catch((err) => {
                 console.log(err)
-                console.log("CREDENTIALS WAS NOT ASSERTED")
-                alert("failed to login because the device is not registered." + username)
+                fetch(`http://localhost:3000/otp/generate/${username}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log(data.nonce)
+                    alert("Your OTP is: " + data.nonce)
+                })
+                .catch((err) => {
+                    console.log("OPT generation failed:" + err)
+                })
+                alert("failed to login because the device is not registered, first register the device." + username)
+                window.location.href = `/totp/${username}`
             })
         })
         .then((assertion) => {
@@ -131,9 +141,9 @@ const Form = () => {
                 body: JSON.stringify(payload)
             })
             .then((response) => {
-                if(response.status === 401) {
+                // if(response.status === 401) {
 
-                }
+                // }
                 if(!response.ok) {
                     throw new Error("Failed to login");
                 }
@@ -156,15 +166,17 @@ const Form = () => {
     }
     
     return (
-        <div>
-            Username:
-            <br/>
-            <input ref={emailEl} type="text" name="username" id="email" placeholder="i.e. foo@bar.com"/>
-            <br/>
-            <br/>
-            <button onClick={() => registerUser()}>Register</button>
-            <button onClick={() => loginUser()}>Login</button>
-        </div>
+        <>
+            <div>
+                Username:
+                <br/>
+                <input ref={emailEl} type="text" name="username" id="email" placeholder="i.e. foo@bar.com"/>
+                <br/>
+                <br/>
+                <button onClick={() => registerUser()}>Register</button>
+                <button onClick={() => loginUser()}>Login</button>
+            </div>
+        </>
     )
 }
 
