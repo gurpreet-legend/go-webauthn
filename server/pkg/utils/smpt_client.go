@@ -13,8 +13,8 @@ func SendEmailViaSMTP(tos []string, cc []string, title string, body string, proc
 	client := mail.NewSMTPClient()
 	client.Host = "smtp.gmail.com"
 	client.Port = 587
-	client.Username = "#"
-	client.Password = "#"
+	client.Username = "info@remaster.io"
+	client.Password = "IhnpTEvn2745@T3r"
 	client.Encryption = mail.EncryptionSTARTTLS
 	client.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	client.ConnectTimeout = 60 * time.Second
@@ -28,7 +28,7 @@ func SendEmailViaSMTP(tos []string, cc []string, title string, body string, proc
 
 	for idx, to := range tos {
 		email := mail.NewMSG()
-		email = email.SetFrom("lostymailtest@gmail.com").SetSubject(title).AddTo(to)
+		email = email.SetFrom("info@remaster.io").SetSubject(title).AddTo(to)
 		email = email.AddCc(cc...)
 
 		if processFunc != nil {

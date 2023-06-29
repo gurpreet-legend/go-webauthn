@@ -21,7 +21,7 @@ const router = createBrowserRouter([
     children: [
       { path: "", element: <Login /> },
       { path: "dashboard", element: <Dashboard /> },
-      { path: "totp/:username", element: <TotpFallbackPage /> },
+      { path: "totp", element: <TotpFallbackPage /> },
     ],
   },
 ]);

@@ -15,7 +15,7 @@ import (
 	"github.com/remaster/webauthn/pkg/utils"
 )
 
-var ErrCredentialsInvalid = errors.New("Error while validating credentials.")
+var ErrCredentialsInvalid = errors.New("error while validating credentials")
 
 func BeginLogin(w http.ResponseWriter, r *http.Request) {
 

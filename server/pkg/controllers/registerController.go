@@ -29,6 +29,7 @@ func BeginRegistration(w http.ResponseWriter, r *http.Request) {
 
 	web := config.GetWebAuthn()
 
+	fmt.Printf("BEGIN REGISTER USERID-----\n%v\n", user.Id)
 	// Begin registration using user
 	options, sessionData, err := web.BeginRegistration(user)
 	if err != nil {
@@ -76,6 +77,8 @@ func FinishRegistration(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
+
+	fmt.Printf("FINISH REGISTER USERID-----\n%v\n", user.Id)
 
 	// Load the session data
 	sess, err := models.GetSessionByUserId(user.Id)

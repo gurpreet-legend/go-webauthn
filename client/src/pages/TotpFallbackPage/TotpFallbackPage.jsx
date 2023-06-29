@@ -1,9 +1,13 @@
 import React, { useRef } from 'react'
 import { useParams } from 'react-router-dom';
 import { bufferDecode, bufferEncode } from '../../utils/helper'
+import { useLocation } from "react-router-dom";
 
 const TotpFallbackPage = () => {
-    const { username } = useParams();
+    // const { username } = useParams();
+    const location = useLocation()
+    const queryParams = new URLSearchParams(location.search)
+    const username = queryParams.get("username");
     
     function registerUser() {
         if (username === "") {
