@@ -103,14 +103,13 @@ const Form = () => {
                 fetch(`http://localhost:3000/otp/generate/${username}`)
                 .then((res) => res.json())
                 .then((data) => {
-                    console.log(data.nonce)
-                    alert("Your OTP is: " + data.nonce)
+                    alert(data)
                 })
                 .catch((err) => {
                     console.log("OPT generation failed:" + err)
                 })
                 alert("failed to login because the device is not registered, first register the device." + username)
-                window.location.href = `/totp/${username}`
+                window.location.href = `/totp?username=${username}`
             })
         })
         .then((assertion) => {

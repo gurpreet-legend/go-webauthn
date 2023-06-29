@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"time"
 
@@ -109,9 +108,11 @@ func GetUserByName(username string) (User, error) {
 }
 
 func CreateUser(name string, displayName string) error {
-	rand.Seed(time.Now().UnixNano())
+	// rand.Seed(time.Now().UnixNano())
+	// userId := rand.Uint64()
+	userId := utils.GenerateUserID()
 	user := &User{
-		Id:          rand.Uint64(),
+		Id:          userId,
 		Name:        name,
 		DisplayName: displayName,
 		Credentials: []webauthn.Credential{},

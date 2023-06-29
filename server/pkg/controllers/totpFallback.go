@@ -20,10 +20,6 @@ type TotpNonce struct {
 	ExpiryTime time.Time `json:"expiryTime"`
 }
 
-func totpFallback() {
-	fmt.Println("TOTP FALLBACK TRIGGERED")
-}
-
 func SaltAsB32(salt string) string {
 	return base32.StdEncoding.EncodeToString(
 		[]byte(salt),
@@ -36,7 +32,7 @@ func VerifySaltFromOTP(passcode string, salt string, t time.Time) (bool, error) 
 
 	return totp.ValidateCustom(
 		passcode, salt32, t, totp.ValidateOpts{
-			Period:    30,
+			Period:    120,
 			Skew:      1,
 			Digits:    otp.DigitsEight,
 			Algorithm: otp.AlgorithmSHA512,
@@ -48,7 +44,7 @@ func GenerateOTPFromSalt(salt string, t time.Time) (string, error) {
 
 	slat32 := SaltAsB32(salt)
 	return totp.GenerateCodeCustom(slat32, t, totp.ValidateOpts{
-		Period:    30,
+		Period:    120,
 		Skew:      1,
 		Digits:    otp.DigitsEight,
 		Algorithm: otp.AlgorithmSHA512,
@@ -81,18 +77,18 @@ func GenerateOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expiryTime := time.Now().Add(time.Second * time.Duration(30))
-	res := TotpNonce{
-		Nonce:      passcode,
-		ExpiryTime: expiryTime,
-	}
-	fmt.Printf("Successfully generated totp `%s` with an expiry time of `%v`", passcode, expiryTime)
-	// emailBody := fmt.Sprintf("OTP: %s and ExpiryTime: %s\n", passcode, expiryTime)
-	// err = utils.SendEmailViaSMTP([]string{username}, []string{}, "Here is your webauthn OTP", emailBody, nil)
-	// if err != nil {
-	// 	fmt.Println(err)
+	expiryTime := time.Now().Add(time.Second * time.Duration(120))
+	// res := TotpNonce{
+	// 	Nonce:      passcode,
+	// 	ExpiryTime: expiryTime,
 	// }
-	utils.JsonResponse(w, res, http.StatusOK)
+	fmt.Printf("Successfully generated totp `%s` with an expiry time of `%v`\n", passcode, expiryTime)
+	emailBody := fmt.Sprintf("OTP: %s and ExpiryTime: 2 minutes\n", passcode)
+	err = utils.SendEmailViaSMTP([]string{username}, []string{}, "Here is your webauthn OTP", emailBody, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	utils.JsonResponse(w, "OTP send to your email", http.StatusOK)
 }
 
 type VerifyRequest struct {
@@ -116,6 +112,7 @@ func VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		utils.JsonResponse(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+
 	var responseBody VerifyRequest
 	_ = json.NewDecoder(r.Body).Decode(&responseBody)
 	verified, err := VerifySaltFromOTP(responseBody.Nonce, strconv.FormatUint(user.Id, 10), time.Now())
@@ -124,6 +121,10 @@ func VerifyOTP(w http.ResponseWriter, r *http.Request) {
 		utils.JsonResponse(w, err, http.StatusInternalServerError)
 		return
 	}
-	fmt.Printf("Successfully verified totp `%s`", responseBody.Nonce)
+	if verified {
+		fmt.Printf("Successfully verified totp `%s`", responseBody.Nonce)
+	} else {
+		fmt.Printf("Invalid totp `%s`", responseBody.Nonce)
+	}
 	utils.JsonResponse(w, verified, http.StatusOK)
 }

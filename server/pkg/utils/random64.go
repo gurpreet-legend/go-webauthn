@@ -4,7 +4,24 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"math/rand"
+	"time"
 )
+
+func GenerateUserID() uint64 {
+	rand.Seed(time.Now().UnixNano())
+
+	// Generate a random uint64 within the range of 0 to 9223372036854775807
+	min := uint64(0)
+	max := uint64(9223372036854775807)
+
+	// Calculate the range of values
+	rangeSize := max - min + 1
+
+	// Generate a random value within the range
+	userID := min + rand.Uint64()%rangeSize
+
+	return userID
+}
 
 func RandomUint64() uint64 {
 	buf := make([]byte, 8)
